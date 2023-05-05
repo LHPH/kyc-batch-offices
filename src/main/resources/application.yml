@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: kyc-batch-offices
+  profiles:
+    active: dev
+  batch:
+    job:
+      enabled: true
+    jdbc:
+      initialize-schema: never
+      table-prefix: KYC_BATCH_
+
+logging:
+  level:
+    root: INFO
+    com.kyc: INFO
+    org.springframework: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+
+kyc-messages:
+  catalog:
+    messages:
+      "001":
+        code: KYC-BATCH-OFFICES-001
+        message: Unexpected Error
+        type: ERROR
