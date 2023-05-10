@@ -3,12 +3,17 @@ package com.kyc.batch.office.config.steps;
 import com.kyc.batch.office.constants.KycBatchExecutiveConstants;
 import com.kyc.batch.office.model.ExecutiveOfficeRelation;
 import com.kyc.batch.office.model.OfficeRawData;
+import com.kyc.core.batch.BatchSkipListener;
 import com.kyc.core.batch.BatchStepListener;
 import com.kyc.core.exception.handlers.KycBatchExceptionHandler;
+import org.springframework.batch.core.SkipListener;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.listener.StepListenerSupport;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +24,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
 import javax.sql.DataSource;
+import java.io.FileNotFoundException;
 import java.util.Properties;
 
 @Configuration
@@ -49,6 +55,11 @@ public class AddOfficesMainConfig {
                 .get(KycBatchExecutiveConstants.ADD_OFFICES_STEP)
                 .listener(addOfficeBatchStepListener())
                 .<OfficeRawData, OfficeRawData>chunk(10)
+                .faultTolerant()
+                .skip(Exception.class)
+                .noSkip(FileNotFoundException.class)
+                .skipLimit(10)
+                .listener(addOfficeBatchSkipListener())
                 .reader(addOfficesMainReader())
                 .writer(addOfficeMainWriter())
                 .exceptionHandler(exceptionHandler)
@@ -71,8 +82,6 @@ public class AddOfficesMainConfig {
                 .build();
     }
 
-    //https://github.com/vector4wang/spring-boot-quick/blob/master/quick-batch/src/main/java/com/quick/batch/config/BatchConfiguration.java#L79
-    //https://github.com/pkainulainen/spring-batch-examples/blob/master/spring/src/main/java/net/petrikainulainen/springbatch/xml/in/StudentPreparedStatementSetter.java
     @Bean
     public JdbcBatchItemWriter<OfficeRawData> addOfficeMainWriter(){
 
@@ -98,7 +107,13 @@ public class AddOfficesMainConfig {
     }
 
     @Bean
-    public BatchStepListener<OfficeRawData, ExecutiveOfficeRelation> addOfficeBatchStepListener(){
+    public StepListenerSupport<OfficeRawData, OfficeRawData> addOfficeBatchStepListener(){
         return new BatchStepListener<>(KycBatchExecutiveConstants.ADD_OFFICES_STEP);
     }
+
+    @Bean
+    public SkipListener<OfficeRawData, OfficeRawData> addOfficeBatchSkipListener(){
+        return new BatchSkipListener<>(KycBatchExecutiveConstants.ADD_OFFICES_STEP);
+    }
+
 }

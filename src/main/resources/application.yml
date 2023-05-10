@@ -5,7 +5,7 @@ spring:
     active: dev
   batch:
     job:
-      enabled: true
+      enabled: false
     jdbc:
       initialize-schema: never
       table-prefix: KYC_BATCH_

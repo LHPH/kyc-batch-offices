@@ -16,8 +16,16 @@
         SELECT ID FROM KYC_OFFICE  WHERE ID &lt;&gt; 0 ORDER BY ID ASC
     </entry>
 
-    <entry key="deleteMainOffice">
+    <entry key="deleteMainOfficeId">
         DELETE FROM KYC_OFFICE WHERE ID &lt;&gt; 0 AND ID IN(?)
+    </entry>
+
+    <entry key="deleteAllMainOffice">
+        DELETE FROM KYC_OFFICE WHERE ID &lt;&gt; 0
+    </entry>
+
+    <entry key="rollbackMainOffices">
+        INSERT INTO KYC_OFFICE SELECT * FROM KYC_OFFICE_TMP WHERE ID &lt;&gt; 0
     </entry>
 
     <entry key="deleteTmpOffice">

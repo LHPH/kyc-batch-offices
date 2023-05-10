@@ -19,5 +19,7 @@ public final class KycBatchExecutiveConstants {
             "OFFICES","UPDATE-EXECUTIVE-OFFICES");
     public static final String CLEAN_FILE_TASK = String.format(BatchConstants.KYC_BATCH_TASKLET_TEMPLATE,
             "OFFICES","CLEAN-FILE");
+    public static final String ROLLBACK_OFFICES_TASK = String.format(BatchConstants.KYC_BATCH_TASKLET_TEMPLATE,
+            "OFFICES","ROLLBACK-OFFICES");
 
 }

@@ -10,17 +10,17 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.Properties;
 
 @AllArgsConstructor
-public class BackupOfficesTasklet implements Tasklet{
+public class RollbackOfficesTasklet implements Tasklet {
 
-    private final JdbcTemplate jdbcTemplate;
+    private JdbcTemplate jdbcTemplate;
 
-    private final Properties queryProps;
+    private Properties queryProps;
 
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) {
 
-        jdbcTemplate.update(queryProps.getProperty("deleteTmpOffice"));
-        jdbcTemplate.update(queryProps.getProperty("backupOffices"));
+        jdbcTemplate.update(queryProps.getProperty("deleteAllMainOffice"));
+        jdbcTemplate.update(queryProps.getProperty("rollbackMainOffices"));
 
         return RepeatStatus.FINISHED;
     }

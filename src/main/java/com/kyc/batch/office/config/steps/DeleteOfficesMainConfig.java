@@ -61,7 +61,7 @@ public class DeleteOfficesMainConfig {
 
         JdbcBatchItemWriter<Integer> jdbcBatchItemWriter = new JdbcBatchItemWriter<>();
         jdbcBatchItemWriter.setDataSource(dataSource);
-        jdbcBatchItemWriter.setSql(queriesProps.get("deleteMainOffice").toString());
+        jdbcBatchItemWriter.setSql(queriesProps.get("deleteMainOfficeId").toString());
         jdbcBatchItemWriter.setItemPreparedStatementSetter((item,ps)->{
             ps.setInt(1,item);
         });

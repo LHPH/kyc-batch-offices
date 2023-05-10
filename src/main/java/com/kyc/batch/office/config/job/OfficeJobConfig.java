@@ -18,16 +18,20 @@ public class OfficeJobConfig {
 
     @Bean
     public Job officeManagementJob(Step backupExecutiveOfficesStep, Step backupOfficesStep,
-                                      Step addOfficesStep, Step deleteOfficesStep, Step updateExecutiveOfficesStep){
+                                   Step addOfficesStep, Step deleteOfficesStep,
+                                   Step updateExecutiveOfficesStep, Step rollbackOfficesStep){
+
         return jobBuilderFactory.get(KycBatchExecutiveConstants.JOB_NAME)
-                .incrementer(new RunIdIncrementer())
                 .listener(officeJobManagementListener())
-                .start(backupExecutiveOfficesStep).on("FAILED").end()
+                .start(backupExecutiveOfficesStep).on("FAILED").fail()
                 .from(backupExecutiveOfficesStep).on("COMPLETED").to(backupOfficesStep)
-                .from(backupOfficesStep).on("FAILED").end()
+                .from(backupOfficesStep).on("FAILED").fail()
                 .from(backupOfficesStep).on("COMPLETED").to(deleteOfficesStep)
+                .from(deleteOfficesStep).on("FAILED").fail()
                 .from(deleteOfficesStep).on("COMPLETED").to(addOfficesStep)
                 .from(addOfficesStep).on("COMPLETED").to(updateExecutiveOfficesStep)
+                .from(addOfficesStep).on("FAILED").to(rollbackOfficesStep)
+                .from(rollbackOfficesStep).on("COMPLETED").to(updateExecutiveOfficesStep)
                 .end()
                 .build();
     }
