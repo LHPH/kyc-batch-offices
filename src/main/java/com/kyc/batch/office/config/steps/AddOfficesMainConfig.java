@@ -1,19 +1,16 @@
 package com.kyc.batch.office.config.steps;
 
 import com.kyc.batch.office.constants.KycBatchExecutiveConstants;
-import com.kyc.batch.office.model.ExecutiveOfficeRelation;
 import com.kyc.batch.office.model.OfficeRawData;
 import com.kyc.core.batch.BatchSkipListener;
 import com.kyc.core.batch.BatchStepListener;
 import com.kyc.core.exception.handlers.KycBatchExceptionHandler;
 import org.springframework.batch.core.SkipListener;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.listener.StepListenerSupport;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,12 +46,15 @@ public class AddOfficesMainConfig {
     @Value("${kyc.batch.offices.offices-load.fields}")
     private String fields;
 
+    @Value("${kyc.batch.offices.offices-load.chunk}")
+    private Integer chunkSize;
+
     @Bean
     public Step addOfficesStep(){
         return stepBuilderFactory
                 .get(KycBatchExecutiveConstants.ADD_OFFICES_STEP)
                 .listener(addOfficeBatchStepListener())
-                .<OfficeRawData, OfficeRawData>chunk(10)
+                .<OfficeRawData, OfficeRawData>chunk(chunkSize)
                 .faultTolerant()
                 .skip(Exception.class)
                 .noSkip(FileNotFoundException.class)
@@ -76,6 +76,7 @@ public class AddOfficesMainConfig {
                 .delimited()
                 .names(fields.split(","))
                 .linesToSkip(1)
+                .strict(false)
                 .fieldSetMapper(new BeanWrapperFieldSetMapper<OfficeRawData>(){{
                     setTargetType(OfficeRawData.class);
                 }})

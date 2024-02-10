@@ -1,10 +1,10 @@
 spring:
   datasource:
-    url: ${JDBC_DATABASE_URL}?escapeSyntaxCallMode=callIfNoReturn
-    username: ${JDBC_DATABASE_USERNAME}
-    password: ${JDBC_DATABASE_PASSWORD}
+    url: ${kyc.config.database.postgresql.url}?escapeSyntaxCallMode=callIfNoReturn
+    username: ${kyc.config.database.postgresql.username}
+    password: ${kyc.config.database.postgresql.secret}
     hikari:
-      maximum-pool-size: 1
+      maximum-pool-size: 10
   jpa:
     properties:
       hibernate:
@@ -12,7 +12,27 @@ spring:
           use_jdbc_metadata_defaults: false
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
 
+kyc:
+  batch:
+    offices:
+      base-path: /opt/kyc/batch/offices
+      backup-executive-office:
+        chunk: 1000
+        path: ${kyc.batch.offices.base-path}/executive-offices.csv
+        fields: idExecutive,idBranch
+      offices-load:
+        chunk: 1000
+        path:  ${kyc.batch.offices.base-path}/KYC_OFFICES.csv
+        fields: ID_BRANCH,NAME,STREET,NEIGHBORHOOD,CITY,STATE,POSTAL_CODE,BUSINESS_HOURS,LATITUDE,LONGITUDE
+
 logging:
+  file:
+    name: /opt/kyc/logs/${spring.application.name}.log
+    logback:
+      rollingpolicy:
+        file-name-pattern: /opt/kyc/logs/${spring.application.name}/%d{yyyy-MM-dd}.%i.log.gz
+        max-file-size: 50MB
+        max-history: 30
   level:
     root: INFO
     com.kyc: INFO

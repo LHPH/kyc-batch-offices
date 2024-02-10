@@ -16,11 +16,14 @@ spring:
 kyc:
   batch:
     offices:
+      base-path: /home/batch/offices
       backup-executive-office:
-        path: "/home/batch/offices/backup/executive-offices.csv"
+        chunk: 1000
+        path: ${kyc.batch.offices.base-path}/executive-offices.csv
         fields: idExecutive,idBranch
       offices-load:
-        path: "/home/batch/offices/KYC_OFFICES.csv"
+        chunk: 1000
+        path: ${kyc.batch.offices.base-path}/KYC_OFFICES.csv
         fields: ID_BRANCH,NAME,STREET,NEIGHBORHOOD,CITY,STATE,POSTAL_CODE,BUSINESS_HOURS,LATITUDE,LONGITUDE
 
 logging:

@@ -44,6 +44,9 @@ public class UpdateExecutiveOfficeConfig {
     @Value("${kyc.batch.offices.backup-executive-office.fields}")
     private String fields;
 
+    @Value("${kyc.batch.offices.backup-executive-office.chunk}")
+    private Integer chunkSize;
+
     @Bean
     public Step updateExecutiveOfficesStep(){
         return stepBuilderFactory
@@ -67,6 +70,7 @@ public class UpdateExecutiveOfficeConfig {
                 .delimited()
                 .names(fields.split(","))
                 .linesToSkip(1)
+                .strict(false)
                 .fieldSetMapper(new BeanWrapperFieldSetMapper<ExecutiveOfficeRelation>(){{
                     setTargetType(ExecutiveOfficeRelation.class);
                 }})
