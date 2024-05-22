@@ -4,7 +4,7 @@ spring:
     username: ${kyc.config.database.postgresql.username}
     password: ${kyc.config.database.postgresql.secret}
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: 5
   jpa:
     properties:
       hibernate:
