@@ -7,8 +7,9 @@ import com.kyc.core.batch.BatchStepListener;
 import com.kyc.core.exception.handlers.KycBatchExceptionHandler;
 import org.springframework.batch.core.SkipListener;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.listener.StepListenerSupport;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.io.FileNotFoundException;
@@ -26,9 +28,6 @@ import java.util.Properties;
 
 @Configuration
 public class AddOfficesMainConfig {
-
-    @Autowired
-    private StepBuilderFactory stepBuilderFactory;
 
     @Autowired
     private KycBatchExceptionHandler exceptionHandler;
@@ -50,11 +49,12 @@ public class AddOfficesMainConfig {
     private Integer chunkSize;
 
     @Bean
-    public Step addOfficesStep(){
-        return stepBuilderFactory
-                .get(KycBatchExecutiveConstants.ADD_OFFICES_STEP)
+    public Step addOfficesStep(JobRepository jobRepository,
+                               PlatformTransactionManager platformTransactionManager){
+
+        return new StepBuilder(KycBatchExecutiveConstants.ADD_OFFICES_STEP,jobRepository)
                 .listener(addOfficeBatchStepListener())
-                .<OfficeRawData, OfficeRawData>chunk(chunkSize)
+                .<OfficeRawData, OfficeRawData>chunk(chunkSize,platformTransactionManager)
                 .faultTolerant()
                 .skip(Exception.class)
                 .noSkip(FileNotFoundException.class)

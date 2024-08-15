@@ -6,12 +6,6 @@ spring:
     driverClassName: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
-  jpa:
-    properties:
-      hibernate:
-        temp:
-          use_jdbc_metadata_defaults: false
-    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
 
 kyc:
   batch:

@@ -6,7 +6,8 @@ import com.kyc.batch.office.model.ExecutiveOfficeRelation;
 import com.kyc.core.batch.BatchStepListener;
 import com.kyc.core.exception.handlers.KycBatchExceptionHandler;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
@@ -17,15 +18,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
 public class BackupExecutiveOfficeConfig {
-
-    @Autowired
-    private StepBuilderFactory stepBuilderFactory;
 
     @Autowired
     private KycBatchExceptionHandler exceptionHandler;
@@ -41,11 +40,11 @@ public class BackupExecutiveOfficeConfig {
     private String backupPath;
 
     @Bean
-    public Step backupExecutiveOfficesStep(){
-        return stepBuilderFactory
-                .get(KycBatchExecutiveConstants.BACKUP_EXECUTIVES_OFFICES_STEP)
+    public Step backupExecutiveOfficesStep(JobRepository jobRepository,
+                                           PlatformTransactionManager platformTransactionManager){
+        return new StepBuilder(KycBatchExecutiveConstants.BACKUP_EXECUTIVES_OFFICES_STEP,jobRepository)
                 .listener(backupExecutiveOfficeBatchStepListener())
-                .<ExecutiveOfficeRelation, ExecutiveOfficeRelation>chunk(10)
+                .<ExecutiveOfficeRelation, ExecutiveOfficeRelation>chunk(10,platformTransactionManager)
                 .reader(backupExecutiveOfficeReader())
                 .writer(backupExecutiveOfficeWriter())
                 .exceptionHandler(exceptionHandler)

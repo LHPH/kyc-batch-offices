@@ -6,7 +6,8 @@ import com.kyc.batch.office.processor.UpdateExecutiveOfficeProcessor;
 import com.kyc.core.batch.BatchStepListener;
 import com.kyc.core.exception.handlers.KycBatchExceptionHandler;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
@@ -19,14 +20,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.Properties;
 
 @Configuration
 public class UpdateExecutiveOfficeConfig {
-
-    @Autowired
-    private StepBuilderFactory stepBuilderFactory;
 
     @Autowired
     private KycBatchExceptionHandler exceptionHandler;
@@ -48,11 +47,11 @@ public class UpdateExecutiveOfficeConfig {
     private Integer chunkSize;
 
     @Bean
-    public Step updateExecutiveOfficesStep(){
-        return stepBuilderFactory
-                .get(KycBatchExecutiveConstants.BACKUP_EXECUTIVES_OFFICES_STEP)
+    public Step updateExecutiveOfficesStep(JobRepository jobRepository,
+                                           PlatformTransactionManager platformTransactionManager){
+        return new StepBuilder(KycBatchExecutiveConstants.BACKUP_EXECUTIVES_OFFICES_STEP,jobRepository)
                 .listener(updateExecutiveOfficeBatchStepListener())
-                .<ExecutiveOfficeRelation, ExecutiveOfficeRelation>chunk(10)
+                .<ExecutiveOfficeRelation, ExecutiveOfficeRelation>chunk(10,platformTransactionManager)
                 .reader(updateExecutiveOfficesMainReader())
                 .processor(updateExecutiveOfficeProcessor())
                 .writer(updateExecutiveOfficeMainWriter())
