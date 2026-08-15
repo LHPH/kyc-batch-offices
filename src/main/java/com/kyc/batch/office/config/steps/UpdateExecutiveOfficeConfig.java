@@ -4,15 +4,15 @@ import com.kyc.batch.office.constants.KycBatchExecutiveConstants;
 import com.kyc.batch.office.model.ExecutiveOfficeRelation;
 import com.kyc.batch.office.processor.UpdateExecutiveOfficeProcessor;
 import com.kyc.core.batch.BatchStepListener;
-import com.kyc.core.exception.handlers.KycBatchExceptionHandler;
-import org.springframework.batch.core.Step;
+import com.kyc.core.properties.KycMessages;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.database.JdbcBatchItemWriter;
+import org.springframework.batch.infrastructure.item.file.FlatFileItemReader;
+import org.springframework.batch.infrastructure.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.infrastructure.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,9 +26,6 @@ import java.util.Properties;
 
 @Configuration
 public class UpdateExecutiveOfficeConfig {
-
-    @Autowired
-    private KycBatchExceptionHandler exceptionHandler;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -48,14 +45,16 @@ public class UpdateExecutiveOfficeConfig {
 
     @Bean
     public Step updateExecutiveOfficesStep(JobRepository jobRepository,
-                                           PlatformTransactionManager platformTransactionManager){
+                                           PlatformTransactionManager platformTransactionManager,
+                                           KycMessages kycMessages
+    ){
         return new StepBuilder(KycBatchExecutiveConstants.BACKUP_EXECUTIVES_OFFICES_STEP,jobRepository)
-                .listener(updateExecutiveOfficeBatchStepListener())
-                .<ExecutiveOfficeRelation, ExecutiveOfficeRelation>chunk(10,platformTransactionManager)
+                .listener(updateExecutiveOfficeBatchStepListener(kycMessages))
+                .<ExecutiveOfficeRelation, ExecutiveOfficeRelation>chunk(chunkSize)
+                .transactionManager(platformTransactionManager)
                 .reader(updateExecutiveOfficesMainReader())
                 .processor(updateExecutiveOfficeProcessor())
                 .writer(updateExecutiveOfficeMainWriter())
-                .exceptionHandler(exceptionHandler)
                 .build();
     }
 
@@ -70,7 +69,7 @@ public class UpdateExecutiveOfficeConfig {
                 .names(fields.split(","))
                 .linesToSkip(1)
                 .strict(false)
-                .fieldSetMapper(new BeanWrapperFieldSetMapper<ExecutiveOfficeRelation>(){{
+                .fieldSetMapper(new BeanWrapperFieldSetMapper<>(){{
                     setTargetType(ExecutiveOfficeRelation.class);
                 }})
                 .build();
@@ -97,7 +96,7 @@ public class UpdateExecutiveOfficeConfig {
     }
 
     @Bean
-    public BatchStepListener<ExecutiveOfficeRelation, ExecutiveOfficeRelation> updateExecutiveOfficeBatchStepListener(){
-        return new BatchStepListener<>(KycBatchExecutiveConstants.UPDATE_EXECUTIVE_OFFICES_STEP);
+    public BatchStepListener<ExecutiveOfficeRelation, ExecutiveOfficeRelation> updateExecutiveOfficeBatchStepListener(KycMessages kycMessages){
+        return new BatchStepListener<>(KycBatchExecutiveConstants.UPDATE_EXECUTIVE_OFFICES_STEP,kycMessages.getMessage("001"));
     }
 }

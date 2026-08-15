@@ -1,17 +1,15 @@
 package com.kyc.batch.office.tasklets;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
-import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.batch.core.step.StepContribution;
+import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Properties;
@@ -27,11 +25,6 @@ public class BackupOfficesTaskletTest {
 
     @InjectMocks
     private BackupOfficesTasklet backupOfficesTasklet;
-
-    @BeforeAll
-    public static void init(){
-        MockitoAnnotations.openMocks(BackupOfficesTaskletTest.class);
-    }
 
     @Test
     public void execute_backupOffice_successfulExecution(){

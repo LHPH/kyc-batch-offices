@@ -2,7 +2,7 @@ package com.kyc.batch.office.processor;
 
 import com.kyc.batch.office.model.ExecutiveOfficeRelation;
 import lombok.AllArgsConstructor;
-import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;

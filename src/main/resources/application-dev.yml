@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:6000/kyc_database
+    url: jdbc:postgresql://localhost:5432/kyc_database
     username: kyc_user
     password: kyc_pass
     driverClassName: org.postgresql.Driver
@@ -10,7 +10,7 @@ spring:
 kyc:
   batch:
     offices:
-      base-path: /home/batch/offices
+      base-path: /home/kyc/batch/offices
       backup-executive-office:
         chunk: 1000
         path: ${kyc.batch.offices.base-path}/executive-offices.csv

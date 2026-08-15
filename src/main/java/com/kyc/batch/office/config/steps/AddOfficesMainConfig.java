@@ -4,16 +4,17 @@ import com.kyc.batch.office.constants.KycBatchExecutiveConstants;
 import com.kyc.batch.office.model.OfficeRawData;
 import com.kyc.core.batch.BatchSkipListener;
 import com.kyc.core.batch.BatchStepListener;
-import com.kyc.core.exception.handlers.KycBatchExceptionHandler;
-import org.springframework.batch.core.SkipListener;
-import org.springframework.batch.core.Step;
+import com.kyc.core.batch.policies.skip.FileSkipPolicy;
+import com.kyc.core.properties.KycMessages;
+import org.springframework.batch.core.listener.SkipListener;
 import org.springframework.batch.core.listener.StepListenerSupport;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
+import org.springframework.batch.infrastructure.item.database.JdbcBatchItemWriter;
+import org.springframework.batch.infrastructure.item.file.FlatFileItemReader;
+import org.springframework.batch.infrastructure.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.infrastructure.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,14 +24,10 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
-import java.io.FileNotFoundException;
 import java.util.Properties;
 
 @Configuration
 public class AddOfficesMainConfig {
-
-    @Autowired
-    private KycBatchExceptionHandler exceptionHandler;
 
     @Autowired
     private DataSource dataSource;
@@ -50,19 +47,20 @@ public class AddOfficesMainConfig {
 
     @Bean
     public Step addOfficesStep(JobRepository jobRepository,
-                               PlatformTransactionManager platformTransactionManager){
+                               PlatformTransactionManager platformTransactionManager,
+                               KycMessages kycMessages
+
+    ){
 
         return new StepBuilder(KycBatchExecutiveConstants.ADD_OFFICES_STEP,jobRepository)
-                .listener(addOfficeBatchStepListener())
-                .<OfficeRawData, OfficeRawData>chunk(chunkSize,platformTransactionManager)
+                .listener(addOfficeBatchStepListener(kycMessages))
+                .<OfficeRawData, OfficeRawData>chunk(chunkSize)
+                .transactionManager(platformTransactionManager)
                 .faultTolerant()
-                .skip(Exception.class)
-                .noSkip(FileNotFoundException.class)
-                .skipLimit(10)
+                .skipPolicy(new FileSkipPolicy(10))
                 .listener(addOfficeBatchSkipListener())
                 .reader(addOfficesMainReader())
                 .writer(addOfficeMainWriter())
-                .exceptionHandler(exceptionHandler)
                 .build();
     }
 
@@ -108,8 +106,8 @@ public class AddOfficesMainConfig {
     }
 
     @Bean
-    public StepListenerSupport<OfficeRawData, OfficeRawData> addOfficeBatchStepListener(){
-        return new BatchStepListener<>(KycBatchExecutiveConstants.ADD_OFFICES_STEP);
+    public StepListenerSupport<OfficeRawData, OfficeRawData> addOfficeBatchStepListener(KycMessages kycMessages){
+        return new BatchStepListener<>(KycBatchExecutiveConstants.ADD_OFFICES_STEP,kycMessages.getMessage("001"));
     }
 
     @Bean

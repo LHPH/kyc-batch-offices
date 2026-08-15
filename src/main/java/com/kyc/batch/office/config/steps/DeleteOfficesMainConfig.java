@@ -2,12 +2,12 @@ package com.kyc.batch.office.config.steps;
 
 import com.kyc.batch.office.constants.KycBatchExecutiveConstants;
 import com.kyc.core.batch.BatchStepListener;
-import com.kyc.core.exception.handlers.KycBatchExceptionHandler;
-import org.springframework.batch.core.Step;
+import com.kyc.core.properties.KycMessages;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.database.JdbcCursorItemReader;
+import org.springframework.batch.infrastructure.item.database.JdbcBatchItemWriter;
+import org.springframework.batch.infrastructure.item.database.JdbcCursorItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -21,9 +21,6 @@ import java.util.Properties;
 public class DeleteOfficesMainConfig {
 
     @Autowired
-    private KycBatchExceptionHandler exceptionHandler;
-
-    @Autowired
     private DataSource dataSource;
 
     @Autowired
@@ -32,24 +29,27 @@ public class DeleteOfficesMainConfig {
 
     @Bean
     public Step deleteOfficesStep(JobRepository jobRepository,
-                                  PlatformTransactionManager platformTransactionManager){
+                                  PlatformTransactionManager platformTransactionManager,
+                                  KycMessages kycMessages
+    ){
         return new StepBuilder(KycBatchExecutiveConstants.DELETE_OFFICES_STEP,jobRepository)
-                .listener(deleteOfficeBatchStepListener())
-                .<Integer, Integer>chunk(10,platformTransactionManager)
+                .listener(deleteOfficeBatchStepListener(kycMessages))
+                .<Integer, Integer>chunk(10)
+                .transactionManager(platformTransactionManager)
                 .reader(deleteOfficesMainReader())
                 .writer(deleteOfficeMainWriter())
-                .exceptionHandler(exceptionHandler)
                 .build();
     }
 
     @Bean
     public JdbcCursorItemReader<Integer> deleteOfficesMainReader(){
 
-        JdbcCursorItemReader<Integer> reader = new JdbcCursorItemReader<>();
+        JdbcCursorItemReader<Integer> reader = new JdbcCursorItemReader<>(
+                dataSource,
+                queriesProps.get("getCurrentOfficesId").toString(),
+                (rs, rowNum) -> rs.getInt("ID")
+        );
 
-        reader.setSql(queriesProps.get("getCurrentOfficesId").toString());
-        reader.setRowMapper((rs, rowNum) -> rs.getInt("ID"));
-        reader.setDataSource(dataSource);
         reader.setName(KycBatchExecutiveConstants.DELETE_OFFICES_STEP+"-READER");
 
         return reader;
@@ -70,7 +70,7 @@ public class DeleteOfficesMainConfig {
 
 
     @Bean
-    public BatchStepListener<Integer, Integer> deleteOfficeBatchStepListener(){
-        return new BatchStepListener<>(KycBatchExecutiveConstants.DELETE_OFFICES_STEP);
+    public BatchStepListener<Integer, Integer> deleteOfficeBatchStepListener(KycMessages kycMessages){
+        return new BatchStepListener<>(KycBatchExecutiveConstants.DELETE_OFFICES_STEP,kycMessages.getMessage("001"));
     }
 }

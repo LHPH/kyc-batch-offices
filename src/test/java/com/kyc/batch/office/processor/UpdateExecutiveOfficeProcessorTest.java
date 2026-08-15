@@ -2,12 +2,10 @@ package com.kyc.batch.office.processor;
 
 import com.kyc.batch.office.model.ExecutiveOfficeRelation;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -32,10 +30,6 @@ public class UpdateExecutiveOfficeProcessorTest {
     @InjectMocks
     private UpdateExecutiveOfficeProcessor processor;
 
-    @BeforeAll
-    public static void init(){
-        MockitoAnnotations.openMocks(UpdateExecutiveOfficeProcessorTest.class);
-    }
 
     @Test
     public void process_processRecordWithExecutiveWithBranchDifferentZero_returnSameRecord(){
